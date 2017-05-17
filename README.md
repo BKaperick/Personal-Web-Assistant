@@ -9,4 +9,8 @@ Additionally, a free account with openweathermap.org is required for full functi
 
 The queries that currently return answers are:
 * Any variation of asking about what time it is
-* "How is the weather in [CITY]?"
+* Any variation of asking about the weather, as long as the query ends in "in CITY?"
+
+
+
+DISCLAIMER: In its current form, the bulk of content is based on the tutorial "http://www.programwitherik.com/getting-started-with-socket-io-node-js-and-express/".  Most of the comments and all of the weather-related code is mine, so I take full responsibility for incorrect terminology and overall bad style in those sections.  Don't blame Erik for that!

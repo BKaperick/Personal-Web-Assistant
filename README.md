@@ -5,8 +5,7 @@ Current dependencies include the most recent versions of:
 * Socket.io
 * jQuery
 
-Additionally, a free account with openweathermap.org is required for full functionality.  Once you set this up, store the api key in "config.json" in the formati
-""" {"weatherKey": "APIKEY"} """
+Additionally, a free account with openweathermap.org is required for full functionality.  Once you set this up, store the api key in "config.json" mapping "weatherKey" to the API key.
 
 The queries that currently return answers are:
 * Any variation of asking about what time it is

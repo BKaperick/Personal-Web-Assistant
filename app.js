@@ -1,6 +1,7 @@
 // Set up necessary packages and json files.
-var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+//var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var http = require('http');
+var https = require('https');
 var keys = require('./config.json');
 var cityLookup = require('./city.list.json');
 
@@ -81,6 +82,67 @@ weatherGet = function(city, callBackData) {
     return http.request(urlfull, callback).end();
 }
 
+formatQuery = function(str) 
+{
+    str = str.replace(/ /g, "+");
+    return str.replace(/\?/g, "");
+} 
+
+const searchHost = "https://www.googleapis.com";
+const searchPath = "/customsearch/v1";
+var searchengineID = keys.searchengineID;
+var googleKey = keys.googleKey;
+
+
+function infoGet(query, callBackData) {
+
+    // Can't seem to get this request to work with an options object
+    // so for now we just build the url directly.
+    var options = {
+        host : searchHost,
+        path: searchPath,
+        q : formatQuery(query),
+        cx: searchengineID,
+        key: googleKey,
+        //num: 1,
+        //imgSize: "medium",
+        //searchType: "image",
+    };
+    url = options.host + options.path +
+        "?q=" + options.q +
+        "&cx=" + options.cx +
+        "&key=" + options.key;
+
+    callback = function(response) {
+        var str = '';
+        console.log(response.statusCode);
+
+        // This is handled in the response logic.
+        if (response.statusCode != 200)
+            callBackData(null);
+        
+        // Successful request to Google.
+        else { 
+            //another chunk of data has been received, so append it to 'str'
+            response.on('data', function (chunk) {
+                str += chunk;
+            });
+            response.on('error',function(errrror){
+                console.log("Request to '" + filename + "' failed: " + errrror)
+            });
+            //the whole response has been received,
+            //so we apply callBackData() to the relevant portion
+            response.on('end', function () {
+                var strJSON = JSON.parse(str);
+                //console.log(str);
+                callBackData(strJSON.items[0].snippet, strJSON.items[0].link); 
+            });
+        }
+    }
+    return https.get(url, callback).end();
+}
+
+
 //Find directory with all packages
 app.use(express.static(__dirname + '/node_modules'));
 
@@ -104,7 +166,12 @@ io.on('connection', function(client) {
         if (data.includes("time")) {
             function prettyTime(h) {if (h < 12) return "AM";
                 return "PM";};
-            var response = [date.getHours()%12] + ":" + date.getMinutes() + prettyTime(date.getHours()) + ".";
+            
+            // Logic to ensure time is displayed correctly
+            var timeSuffix = (date.getHours() < 12) ? " AM" : " PM";
+            var minutes = date.getMinutes() >= 10? date.getMinutes() : "0" + date.getMinutes().toString();
+            
+            var response = [date.getHours()%12] + ":" + minutes + timeSuffix + ".";
             client.emit('broad', response);
             client.broadcast.emit('broad', response); }
 
@@ -115,18 +182,54 @@ io.on('connection', function(client) {
             var city = data.substring(data.lastIndexOf("in ")+3,data.length-1);
             // Retrieve weather information and send to user
             weatherGet(city, function(str) {
+                
+                // GET request failed, or city was not found
                 if (str == null)
                     var response = "I'm sorry, I had trouble finding that information for you.";
+
+                // Send weather information formatted to be human-readable.
                 else
                     var response = city + " is at " + str.temp + " degrees Fahrenheit and " + str.humidity + "% humidity.";
                 client.emit('broad', response);
                 client.broadcast.emit('broad', response);
             }); }
-      
+        
+        // Return the first Google search result snippet and source. 
+        else if (data.includes("info")) {
+
+            // Search the last word in their message
+            var lastWord = data.split(" ");
+            var query = lastWord[lastWord.length - 1];
+
+            // Query Google Custom Search Engine and return the snippet
+            // from the first entry (usually wikipedia)
+            infoGet(query, function(str, src) {
+                
+                // Truncate any partial sentence
+                if (str.indexOf("...") == str.length - 3) {
+                    str = str.split("...")[0];
+                    str = str.substring(0, str.lastIndexOf(".")+1) + "  ";
+                }
+
+                // Response object contains the snippet, the source url
+                // and the text to prompt further exploration on the 
+                // hyperlink
+                var response = str;
+                response = {
+                    info: str,
+                    source: src,
+                    srcFlavor: "Get more info here!"};
+
+                // Custom emit option to include hyperlink to src 
+                // after snippet
+                client.emit('websearch', response);
+                client.broadcast.emit('websearch', response);
+            }); 
+        }
+            
         // Can't respond to anything else right now. 
         else {
-           
-            var response = "I'm afraid I don't know...";
+            var response = "I'm afraid I don't have a good response...";
             client.emit('broad', response);
             client.broadcast.emit('broad', response); }
     });

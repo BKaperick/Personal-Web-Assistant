@@ -4,7 +4,9 @@
         <style>img{ height: 100px; float: left; }</style>
     </head>
     <body>
-        <h1>Hello World!</h1>
+        <h1>Personal Web Assistant</h1>
+        <p>Bryan Kaperick created me!  Check out my source code
+              <a href="http://www.github.com/BKaperick//Personal-Web-Assistant/">here</a>.</p>
         <div id="future"></div>
         <form id="form" id="chat_form">
             <input id="chat_input" type="text">
@@ -14,6 +16,7 @@
         <script src="/socket.io/socket.io.js"></script>
     </body>
 </html>
+
 <script>
 var socket = io.connect('http://localhost:4200');
 socket.on('connect', function(data) {
@@ -21,6 +24,12 @@ socket.on('connect', function(data) {
 });
 socket.on('broad', function(data) {
     $('#future').append(data+ "<br/>");
+    socket.emit('join', 'sending: ' + data);
+});
+socket.on('websearch', function(data) {
+    var toSend = data.info + "<a href=" + data.source + ">" + data.srcFlavor + "</a>";
+    $('#future').append(toSend + "<br/>");
+    socket.emit('join', 'sending: ' + toSend);
 });
 
 <!-- JQery event handler to stop form submission and send message to server -->

@@ -5,12 +5,12 @@
     </head>
     <body>
         <h1>Personal Web Assistant</h1>
-        <p>Bryan Kaperick created me!  Check out my source code
+        <p style="color:gray;font-family:courier;">Bryan Kaperick created me!  Check out my source code
               <a href="http://www.github.com/BKaperick//Personal-Web-Assistant/">here</a>.</p>
-        <div id="future"></div>
-        <form id="form" id="chat_form">
-            <input id="chat_input" type="text">
-            <input type="submit" value="Send">
+        <div id="future" style="width: 420px"></div>
+        <form id="form" id="chat_form" autocomplete="off" style="overflow:hidden;">
+            <input id="chat_input" type="text" autocomplete="off">
+            <input type="submit" value="Send" autocomplete="off">
         </form>
         <script src="/jquery/dist/jquery.js"></script>
         <script src="/socket.io/socket.io.js"></script>
@@ -23,12 +23,12 @@ socket.on('connect', function(data) {
     socket.emit('join', 'Hello World from client');
 });
 socket.on('broad', function(data) {
-    $('#future').append(data+ "<br/>");
+    $('#future').append(data+ "<br/><br/>");
     socket.emit('join', 'sending: ' + data);
 });
 socket.on('websearch', function(data) {
-    var toSend = data.info + "<a href=" + data.source + ">" + data.srcFlavor + "</a>";
-    $('#future').append(toSend + "<br/>");
+    var toSend = data.info + "<br/><a href=" + data.source + ">" + data.srcFlavor + "</a>";
+    $('#future').append(toSend + "<br/><br/>");
     socket.emit('join', 'sending: ' + toSend);
 });
 

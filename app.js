@@ -171,7 +171,7 @@ io.on('connection', function(client) {
             var timeSuffix = (date.getHours() < 12) ? " AM" : " PM";
             var minutes = date.getMinutes() >= 10? date.getMinutes() : "0" + date.getMinutes().toString();
             
-            var response = [date.getHours()%12] + ":" + minutes + timeSuffix + ".";
+            var response = "It is " + [date.getHours()%12] + ":" + minutes + timeSuffix + ".  (EST)";
             client.emit('broad', response);
             client.broadcast.emit('broad', response); }
 
@@ -216,7 +216,7 @@ io.on('connection', function(client) {
                 // hyperlink
                 var response = str;
                 response = {
-                    info: str,
+                    info: str + "  ",
                     source: src,
                     srcFlavor: "Get more info here!"};
 

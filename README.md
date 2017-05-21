@@ -1,5 +1,7 @@
 A Web-based chat app which responds to basic informational queries.
 
+<img src="./pwa-demo-good.gif" style="max-width:100%;">
+
 Current dependencies include the most recent versions of:
 * Node.js
 * Socket.io
